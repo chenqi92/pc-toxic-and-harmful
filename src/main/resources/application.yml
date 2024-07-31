@@ -1,0 +1,8 @@
+server:
+  port: 6789
+spring:
+  application:
+    name: pc-toxic-and-harmful
+  profiles:
+    active: dev
+
