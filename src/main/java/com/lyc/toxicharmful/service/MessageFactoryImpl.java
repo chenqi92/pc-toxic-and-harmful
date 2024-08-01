@@ -13,12 +13,15 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static com.lyc.toxicharmful.config.constant.CacheConstant.TOXIC_AND_HARMFUL_DATA;
 import static com.lyc.toxicharmful.config.constant.CacheConstant.TOXIC_AND_HARMFUL_DATA_ALARM;
@@ -155,6 +158,7 @@ public class MessageFactoryImpl implements MessageFactory {
                     "ORDER BY time DESC\n" +
                     "LIMIT 1";
             List<AlarmFieldDTO> dataList = influxTemplate.queryBeanList(command, AlarmFieldDTO.class);
+            // 修改数据
             if (!dataList.isEmpty()) {
                 AlarmFieldDTO fieldDTO = dataList.get(0);
                 Map<String, String> tags = new HashMap<>();
@@ -170,9 +174,9 @@ public class MessageFactoryImpl implements MessageFactory {
                 fields.put("type", 1);
                 fields.put("clearTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern(NORM_DATETIME_PATTERN)));
                 // 移除原数据
-                influxTemplate.query("DELETE FROM " + DB_TOXIC_AND_HARMFUL_ALARM + " WHERE alarmTime = '" + fieldDTO.getAlarmTime() + "' AND code = '" + key + "'");
+                influxTemplate.query("DELETE FROM " + DB_TOXIC_AND_HARMFUL_ALARM + " WHERE time = '" + new SimpleDateFormat(UTC_MS_WITH_ZONE_OFFSET_PATTERN).format(fieldDTO.getTime()) + "'");
                 // 增加数据
-                influxTemplate.insert(DB_TOXIC_AND_HARMFUL_ALARM, tags, fields);
+                influxTemplate.insert(DB_TOXIC_AND_HARMFUL_ALARM, tags, fields, fieldDTO.getTime().getTime(), TimeUnit.MILLISECONDS, ZoneOffset.of("+08:00"));
             }
         }
     }

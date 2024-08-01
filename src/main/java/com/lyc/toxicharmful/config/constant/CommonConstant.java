@@ -32,4 +32,9 @@ public interface CommonConstant {
      * 常用时间格式
      */
     String NORM_DATETIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+
+    /**
+     * influxdb常用时间格式
+     */
+    String UTC_MS_WITH_ZONE_OFFSET_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 }

@@ -3,6 +3,8 @@ package com.lyc.toxicharmful.dto;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 /**
  * 类 AlarmFieldDTO 有毒有害气体报警字段DTO 主要用于确定类型
@@ -26,4 +28,6 @@ public class AlarmFieldDTO {
     private String content;
 
     private Integer type;
+
+    private Timestamp time;
 }
