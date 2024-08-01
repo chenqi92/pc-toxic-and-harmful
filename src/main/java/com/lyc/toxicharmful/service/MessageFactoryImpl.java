@@ -9,7 +9,6 @@ import com.lyc.toxicharmful.dto.AlarmFieldDTO;
 import com.lyc.toxicharmful.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -107,7 +106,6 @@ public class MessageFactoryImpl implements MessageFactory {
      * @param level  等级 1级 2级
      * @param factor 枚举
      */
-    @Async
     public void sendAlarmAsync(String key, BigDecimal value, Integer level, GasType factor) {
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern(NORM_DATETIME_PATTERN));
         try {
@@ -125,6 +123,8 @@ public class MessageFactoryImpl implements MessageFactory {
                 fields.put("alarmTime", time);
                 fields.put("unit", factor.getUnit());
                 fields.put("level", level);
+                // 额外添加type, 0为报警 1为消警
+                fields.put("type", 0);
                 fields.put("threshold", factor.getLevelOneThreshold() * level);
                 fields.put("content", String.format("监测点位%s编号%s%s发生%s级报警,报警值%s%s,报警阈值%s%s", factor.getName(), key, time, level, value, factor.getUnit(), factor.getLevelOneThreshold() * level, factor.getUnit()));
                 influxTemplate.insert(DB_TOXIC_AND_HARMFUL_ALARM, tags, fields);
@@ -144,7 +144,6 @@ public class MessageFactoryImpl implements MessageFactory {
      *
      * @param key key
      */
-    @Async
     public void clearAlarmAsync(String key, String name) {
         if (Boolean.TRUE.equals(redisTemplate.hasKey(TOXIC_AND_HARMFUL_DATA_ALARM + key))) {
             log.info("移除{}报警缓存，添加消警时间", key);
@@ -152,7 +151,7 @@ public class MessageFactoryImpl implements MessageFactory {
             redisTemplate.delete(TOXIC_AND_HARMFUL_DATA_ALARM + key);
             // 获取当前点位未消警的报警数据,删除后插入带有结束时间的数据
             String command = "SELECT * FROM " + DB_TOXIC_AND_HARMFUL_ALARM + "\n" +
-                    "WHERE \"code\" = '" + key + "' AND \"clearTime\" = ''\n" +
+                    "WHERE \"code\" = '" + key + "' AND \"type\" = 0\n" +
                     "ORDER BY time DESC\n" +
                     "LIMIT 1";
             List<AlarmFieldDTO> dataList = influxTemplate.queryBeanList(command, AlarmFieldDTO.class);
@@ -168,6 +167,7 @@ public class MessageFactoryImpl implements MessageFactory {
                 fields.put("level", fieldDTO.getLevel());
                 fields.put("threshold", fieldDTO.getThreshold());
                 fields.put("content", fieldDTO.getContent());
+                fields.put("type", 1);
                 fields.put("clearTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern(NORM_DATETIME_PATTERN)));
                 // 移除原数据
                 influxTemplate.query("DELETE FROM " + DB_TOXIC_AND_HARMFUL_ALARM + " WHERE alarmTime = '" + fieldDTO.getAlarmTime() + "' AND code = '" + key + "'");

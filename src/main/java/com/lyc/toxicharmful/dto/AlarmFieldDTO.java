@@ -24,4 +24,6 @@ public class AlarmFieldDTO {
     private Double threshold;
 
     private String content;
+
+    private Integer type;
 }
