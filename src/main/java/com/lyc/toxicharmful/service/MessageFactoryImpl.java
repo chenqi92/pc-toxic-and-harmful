@@ -126,7 +126,7 @@ public class MessageFactoryImpl implements MessageFactory {
                 // 额外添加type, 0为报警 1为消警
                 fields.put("type", 0);
                 fields.put("threshold", factor.getLevelOneThreshold() * level);
-                fields.put("content", String.format("监测点位%s编号%s%s发生%s级报警,报警值%s%s,报警阈值%s%s", factor.getName(), key, time, level, value, factor.getUnit(), factor.getLevelOneThreshold() * level, factor.getUnit()));
+                fields.put("content", String.format("监测点位%s编号%s于%s发生%s级报警,报警值%s%s,报警阈值%s%s", factor.getName(), key, time, level, value, factor.getUnit(), factor.getLevelOneThreshold() * level, factor.getUnit()));
                 influxTemplate.insert(DB_TOXIC_AND_HARMFUL_ALARM, tags, fields);
             }
             // Redis报警数据
