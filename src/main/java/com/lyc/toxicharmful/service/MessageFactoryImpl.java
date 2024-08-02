@@ -73,7 +73,7 @@ public class MessageFactoryImpl implements MessageFactory {
                     fields.put(key, valueToCheck);
                     // redis储存其他数据
                     try {
-                        redisTemplate.opsForHash().put(unitEnum.getCacheKey() + hjData.getMn(), key, valueToCheck);
+                        redisTemplate.opsForHash().put(unitEnum.getCacheKey(), key, valueToCheck);
                     } catch (Exception e) {
                         log.error("保存212{}数据失败,数据{},原因{}", unitEnum.getSuffixName(), hjData, e.getLocalizedMessage());
                     }
