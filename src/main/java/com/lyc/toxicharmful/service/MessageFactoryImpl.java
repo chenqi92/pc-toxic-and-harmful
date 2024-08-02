@@ -68,8 +68,7 @@ public class MessageFactoryImpl implements MessageFactory {
                     } catch (Exception e) {
                         log.error("保存212实时数据失败,数据{},原因{}", hjData, e.getLocalizedMessage());
                     }
-                }
-                if (avg.isPresent()) {
+                } else if (avg.isPresent()) {
                     BigDecimal valueToCheck = avg.get();
                     fields.put(key, valueToCheck);
                     // redis储存其他数据
