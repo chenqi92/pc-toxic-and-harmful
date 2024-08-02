@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static com.lyc.toxicharmful.config.constant.CacheConstant.TOXIC_AND_HARMFUL_DATA;
 import static com.lyc.toxicharmful.config.constant.CacheConstant.TOXIC_AND_HARMFUL_DATA_ALARM;
 import static com.lyc.toxicharmful.config.constant.CommonConstant.*;
 
@@ -54,9 +53,9 @@ public class MessageFactoryImpl implements MessageFactory {
         tags.put("qnTime", Optional.ofNullable(hjData).map(a -> DateUtil.timeFormatWithMs(a.getQn())).orElse(""));
         tags.put("dataTime", Optional.ofNullable(hjData).map(HjData::getCp).map(CpData::getDataTime).map(DateUtil::timeFormat).orElse(""));
         TimeUnitEnum unitEnum = TimeUnitEnum.fromCommand(Optional.ofNullable(hjData).map(HjData::getCn).orElse(null));
-        redisTemplate.opsForHash().put(TOXIC_AND_HARMFUL_DATA + Optional.ofNullable(hjData).map(HjData::getMn).orElse(""), "time", LocalDateTime.now().format(DateTimeFormatter.ofPattern(NORM_DATETIME_PATTERN)));
+        redisTemplate.opsForHash().put(unitEnum.getCacheKey(), "time", LocalDateTime.now().format(DateTimeFormatter.ofPattern(NORM_DATETIME_PATTERN)));
         if (Optional.ofNullable(hjData).map(HjData::getCp).map(CpData::getPollution).isPresent()) {
-            redisTemplate.opsForHash().put(TOXIC_AND_HARMFUL_DATA + hjData.getMn(), "time", LocalDateTime.now().format(DateTimeFormatter.ofPattern(NORM_DATETIME_PATTERN)));
+            redisTemplate.opsForHash().put(unitEnum.getCacheKey(), "time", LocalDateTime.now().format(DateTimeFormatter.ofPattern(NORM_DATETIME_PATTERN)));
             hjData.getCp().getPollution().forEach((key, value) -> {
                 Optional<BigDecimal> rtd = Optional.ofNullable(value.getRtd());
                 Optional<BigDecimal> avg = Optional.ofNullable(value.getAvg());
@@ -65,7 +64,7 @@ public class MessageFactoryImpl implements MessageFactory {
                     fields.put(key, valueToCheck);
                     // redis储存实时数据
                     try {
-                        redisTemplate.opsForHash().put(unitEnum.getCacheKey() + hjData.getMn(), key, valueToCheck);
+                        redisTemplate.opsForHash().put(unitEnum.getCacheKey(), key, valueToCheck);
                     } catch (Exception e) {
                         log.error("保存212实时数据失败,数据{},原因{}", hjData, e.getLocalizedMessage());
                     }
