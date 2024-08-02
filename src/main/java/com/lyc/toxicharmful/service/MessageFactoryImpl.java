@@ -5,6 +5,7 @@ import cn.allbs.hj212.model.HjData;
 import cn.allbs.hj212.model.Pollution;
 import cn.allbs.influx.InfluxTemplate;
 import com.lyc.toxicharmful.config.enums.GasType;
+import com.lyc.toxicharmful.config.enums.TimeUnitEnum;
 import com.lyc.toxicharmful.dto.AlarmFieldDTO;
 import com.lyc.toxicharmful.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -52,28 +53,42 @@ public class MessageFactoryImpl implements MessageFactory {
         tags.put("mn", Optional.ofNullable(hjData).map(HjData::getMn).orElse(""));
         tags.put("qnTime", Optional.ofNullable(hjData).map(a -> DateUtil.timeFormatWithMs(a.getQn())).orElse(""));
         tags.put("dataTime", Optional.ofNullable(hjData).map(HjData::getCp).map(CpData::getDataTime).map(DateUtil::timeFormat).orElse(""));
+        TimeUnitEnum unitEnum = TimeUnitEnum.fromCommand(Optional.ofNullable(hjData).map(HjData::getCn).orElse(null));
         redisTemplate.opsForHash().put(TOXIC_AND_HARMFUL_DATA + Optional.ofNullable(hjData).map(HjData::getMn).orElse(""), "time", LocalDateTime.now().format(DateTimeFormatter.ofPattern(NORM_DATETIME_PATTERN)));
         if (Optional.ofNullable(hjData).map(HjData::getCp).map(CpData::getPollution).isPresent()) {
             redisTemplate.opsForHash().put(TOXIC_AND_HARMFUL_DATA + hjData.getMn(), "time", LocalDateTime.now().format(DateTimeFormatter.ofPattern(NORM_DATETIME_PATTERN)));
             hjData.getCp().getPollution().forEach((key, value) -> {
                 Optional<BigDecimal> rtd = Optional.ofNullable(value.getRtd());
                 Optional<BigDecimal> avg = Optional.ofNullable(value.getAvg());
-                if (rtd.isPresent() || avg.isPresent()) {
-                    BigDecimal valueToCheck = rtd.orElseGet(avg::get);
+                if (rtd.isPresent()) {
+                    BigDecimal valueToCheck = rtd.get();
                     fields.put(key, valueToCheck);
                     // redis储存实时数据
                     try {
-                        redisTemplate.opsForHash().put(TOXIC_AND_HARMFUL_DATA + hjData.getMn(), key, valueToCheck);
+                        redisTemplate.opsForHash().put(unitEnum.getCacheKey() + hjData.getMn(), key, valueToCheck);
                     } catch (Exception e) {
                         log.error("保存212实时数据失败,数据{},原因{}", hjData, e.getLocalizedMessage());
                     }
-                    checkAndHandleAlarm(key, valueToCheck);
+                }
+                if (avg.isPresent()) {
+                    BigDecimal valueToCheck = avg.get();
+                    fields.put(key, valueToCheck);
+                    // redis储存其他数据
+                    try {
+                        redisTemplate.opsForHash().put(unitEnum.getCacheKey() + hjData.getMn(), key, valueToCheck);
+                    } catch (Exception e) {
+                        log.error("保存212{}数据失败,数据{},原因{}", unitEnum.getSuffixName(), hjData, e.getLocalizedMessage());
+                    }
+                    // 只对小时数据做判断(实际为8小时)
+                    if (TimeUnitEnum.HOUR.equals(unitEnum)) {
+                        checkAndHandleAlarm(key, valueToCheck);
+                    }
                 }
                 fields.put(key + "_flag", Optional.of(value).map(Pollution::getFlag).orElse(null));
                 fields.put(key + "_SampleTime", Optional.of(value).map(Pollution::getSampleTime).orElse(null));
             });
         }
-        influxTemplate.insert(DB_TOXIC_AND_HARMFUL_DATA, tags, fields);
+        influxTemplate.insert(DB_TOXIC_AND_HARMFUL_DATA + unitEnum.getSuffix(), tags, fields);
     }
 
     /**

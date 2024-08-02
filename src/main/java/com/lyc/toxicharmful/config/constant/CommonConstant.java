@@ -9,6 +9,11 @@ package com.lyc.toxicharmful.config.constant;
 public interface CommonConstant {
 
     /**
+     * 冒号
+     */
+    String COLON = ":";
+
+    /**
      * influxdb中储存实时数据的表
      */
     String DB_TOXIC_AND_HARMFUL_DATA = "toxic_and_harmful_data";
