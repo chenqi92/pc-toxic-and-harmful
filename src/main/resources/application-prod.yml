@@ -1,0 +1,25 @@
+spring:
+  aop:
+    proxy-target-class: true
+    auto: true
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: ${REDIS_PWD_DEV:123456}
+    timeout: 5000
+    database: 5
+    lettuce:
+      pool:
+        min-idle: 2
+
+netty:
+  port: 6000
+
+influx:
+  open_url: http://127.0.0.1:8086
+  username: admin
+  password: 123456
+  database: test
+  retention_policy: autogen
+  retention_policy_time: 0s
+  skip-error: false
