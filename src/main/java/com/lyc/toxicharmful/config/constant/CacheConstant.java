@@ -16,7 +16,7 @@ public interface CacheConstant {
     /**
      * 有毒有害气体最新数据缓存
      */
-    String TOXIC_AND_HARMFUL_DATA = PRODUCT + "th_data:";
+    String TOXIC_AND_HARMFUL_DATA = PRODUCT + "th_data";
 
     /**
      * 有毒有害气体报警数据缓存
