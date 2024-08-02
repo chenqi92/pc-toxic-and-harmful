@@ -4,7 +4,6 @@ import cn.allbs.hj212.enums.Command;
 import lombok.Getter;
 
 import static com.lyc.toxicharmful.config.constant.CacheConstant.TOXIC_AND_HARMFUL_DATA;
-import static com.lyc.toxicharmful.config.constant.CommonConstant.COLON;
 
 /**
  * 枚举
@@ -28,7 +27,7 @@ public enum TimeUnitEnum {
         this.suffix = suffix;
         this.suffixName = suffixName;
         this.command = command;
-        this.cacheKey = TOXIC_AND_HARMFUL_DATA + suffix + COLON;
+        this.cacheKey = TOXIC_AND_HARMFUL_DATA + suffix;
     }
 
     public static TimeUnitEnum fromCommand(String command) {
