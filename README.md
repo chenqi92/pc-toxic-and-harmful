@@ -16,4 +16,4 @@
 | 氨气       | a21001 | ppm  | 1mg/m³  (1.435ppm)    | 2mg/m³(2.87ppm)     |
 | 丙烯腈   | a66003 | ppm  | 20mg/m³(9.22ppm)      | 40mg/m³(18.44ppm)      |
 
-![](https://nas.allbs.cn:9006/cloudpic/2024/07/5fd718340e26b4ea80f194591547ed61.png)
+
